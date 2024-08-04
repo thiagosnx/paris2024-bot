@@ -22,10 +22,18 @@ def hoje(msg):
         'date': f'{tse.strftime("%Y-%m-%d")}'
         , 'country':'BRA'
     }
+    params2 = {
+        'date': f'{tse.strftime("%Y-%m-%d")}'
+        , 'competitor' : 'Brazil'
+    }
     response = requests.get(f"{APIURL}/events", params=params)
-    
     data = response.json()
     data_list = data.get('data', [])
+
+    response2 = requests.get(f"{APIURL}/events", params=params2)
+    data2 = response2.json()
+    data_list2 = data2.get('data', [])
+    
 
     mensagem = f"Lista dos eventos com participação *BRASILEIRA* hoje ({tse.strftime('%d/%m/%Y')})\n(Clique para exibir os detalhes) \n"
     esportes_adicionados = set()
@@ -40,6 +48,16 @@ def hoje(msg):
             else:
                 mensagem += f"""/{esporte.lower()}\n"""
         
+    for item in data_list2:
+        esporte = item.get('discipline_name', 'Desconhecido')
+        status = item.get('status', None)
+    
+        if esporte not in esportes_adicionados:
+            esportes_adicionados.add(esporte)
+            if status == "Finished":
+                mensagem += f"""/{esporte.lower()} - *Finalizado* \n"""
+            else:
+                mensagem += f"""/{esporte.lower()}\n"""
 
     mensagem +="\n/amanha"
 
@@ -56,10 +74,18 @@ def amanha(msg):
         'date': f'{tse.strftime("%Y-%m-%d")}'
         , 'country':'BRA'
     }
+    params2 = {
+        'date': f'{tse.strftime("%Y-%m-%d")}'
+        , 'competitor' : 'Brazil'
+    }
     response = requests.get(f"{APIURL}/events", params=params)
-    
     data = response.json()
     data_list = data.get('data', [])
+
+    response2 = requests.get(f"{APIURL}/events", params=params2)
+    data2 = response2.json()
+    data_list2 = data2.get('data', [])
+    
 
     mensagem = f"Lista dos eventos com participação *BRASILEIRA* amanhã ({tse.strftime('%d/%m/%Y')})\n(Clique para exibir os detalhes) \n"
     esportes_adicionados = set()
@@ -73,6 +99,18 @@ def amanha(msg):
             if(status == "Finished"):
                 mensagem += f"""/{esporte.lower()}"""
                 mensagem += f" - *Finalizado* \n"
+            else:
+                mensagem += f"""/{esporte.lower()}\n"""
+
+
+    for item in data_list2:
+        esporte = item.get('discipline_name', 'Desconhecido')
+        status = item.get('status', None)
+    
+        if esporte not in esportes_adicionados:
+            esportes_adicionados.add(esporte)
+            if status == "Finished":
+                mensagem += f"""/{esporte.lower()} - *Finalizado* \n"""
             else:
                 mensagem += f"""/{esporte.lower()}\n"""
     mensagem +="\n/hoje"
@@ -108,9 +146,14 @@ def handle_esporte(msg):
 
         response = requests.get(f'{APIURL}/disciplines')
         data = response.json()
-        disciplinaName = esporte
-
+      
+        if(esporte == 'Table'):
+            disciplinaName = 'Table Tennis'
+        else:
+            disciplinaName = esporte
+        
         discipline_info = ""
+        
         for disciplina in data['data']:
             name = disciplina.get('name', None)
             if name == disciplinaName:
